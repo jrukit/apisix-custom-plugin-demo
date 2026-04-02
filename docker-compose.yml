@@ -1,0 +1,35 @@
+version: "3"
+
+services:
+  apisix:
+    image: apache/apisix:${APISIX_IMAGE_TAG:-3.15.0-debian}
+    restart: always
+    user: root 
+    command: >
+      sh -c "apt-get update && apt-get install -y luarocks &&
+      luarocks install busted &&
+      apisix init &&
+      /usr/local/openresty/bin/openresty -p /usr/local/apisix -g 'daemon off;'"
+    volumes:
+      - ./config.yaml:/usr/local/apisix/conf/config.yaml:ro
+      - ./apisix.yaml:/usr/local/apisix/conf/apisix.yaml:ro
+      - ./custom-plugins:/opt/apisix/plugins:ro
+      - ./spec:/opt/spec:ro
+    environment:
+      - LUA_PATH=/opt/apisix/plugins/?.lua;/usr/local/apisix/deps/share/lua/5.1/?.lua;/usr/local/apisix/deps/share/lua/5.1/?/init.lua;;
+    ports:
+      - "9180:9180/tcp"
+      - "9080:9080/tcp"
+      - "9091:9091/tcp"
+      - "9443:9443/tcp"
+      - "9092:9092/tcp"
+    networks:
+      apisix:
+
+networks:
+  apisix:
+    driver: bridge
+
+volumes:
+  etcd_data:
+    driver: local

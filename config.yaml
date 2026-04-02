@@ -1,0 +1,16 @@
+apisix:
+  extra_lua_path: "/opt/?.lua"
+  node_listen: 9080
+  enable_ipv6: false
+  enable_control: true
+  control:
+    ip: "0.0.0.0"
+    port: 9092
+
+deployment:
+  role: data_plane
+  role_data_plane:
+    config_provider: yaml
+
+plugins:
+  - dump

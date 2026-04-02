@@ -1,0 +1,15 @@
+plugin_configs:
+    -
+        id: 1
+        plugins:
+            dump:
+                body: "Dump plugin is working."
+routes:
+    - id: 1
+      uri: /*
+      plugin_config_id: 1
+      upstream:
+        nodes:
+          "httpbin.org:80": 1
+        type: roundrobin
+#END
