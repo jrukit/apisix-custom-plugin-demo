@@ -4,7 +4,107 @@ local mocked_core = {
 
 package.loaded["apisix.core"]  = mocked_core
 
+local mocked_instance = {
+    set_timeout = function(self, _) end,
+    close = function(self) end,
+    request_uri = function(self, _) return { status = 200 } end
+}
+
+local mocked_http = {
+    new = function()
+        return mocked_instance
+    end
+}
+
+package.loaded["resty.http"]  = mocked_http
+
 local actual = require("custom-signature-authorizer")
+local cjson = require "cjson"
+
+describe("fetch_pub_key", function()
+  it("should be publick key.", function()
+    local expected = "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5CMNefT88zJlnaHmHJMtEXY58E1PvX8+9mzJ8PpuG55U2K1sPyRX/mKplwaGBsSF0kKowXyXsrqzGEXlbsNYQjTd2oUGv6I54UE6p8xbIEB90jCwyKkej91Phy7DjReEQWAOgV5WYCommDCkER7HPRVpF2aMR2rb+hcS7YWProwbnqfEJIh5A9oml4iyud/YCkHWFuPyTzBAhOUsiIotaJL89tta0Y5x42mSJaFLcypzyPo+CcpEJNFq5VE+C6vda++vJmklK29Za/b4AX8v1WzDsFHDVk+JFc8D4r1pyzVTyKbODni9M/BWzgoM37PMePg9bNMa0XmlrVTaFKIEkwIDAQAB\n-----END PUBLIC KEY-----"
+
+    spy.on(mocked_instance, "request_uri")
+
+    assert.equal(expected, actual.fetch_pub_key("mocked_username"))
+    assert.spy(mocked_instance.request_uri).was_called_with(
+      match._,
+      "https://httpbun.com", 
+      match.is_table({ method = "GET", ssl_verify = false })
+    )
+  end)
+
+  it("should be nil with username does not match.", function()
+    spy.on(mocked_instance, "request_uri")
+
+    assert.is_nil(actual.fetch_pub_key("mocked_username_0007"))
+    assert.spy(mocked_instance.request_uri).was_called_with(
+      match._,
+      "https://httpbun.com", 
+      match.is_table({ method = "GET", ssl_verify = false })
+    )
+  end)
+
+  it("should be nil with http status is 500.", function()
+    mocked_instance.request_uri = function(_, _)
+      return { status = 500 }
+    end
+
+    spy.on(mocked_instance, "request_uri")
+
+    assert.is_nil(actual.fetch_pub_key("mocked_username_0007"))
+    assert.spy(mocked_instance.request_uri).was_called_with(
+      match._,
+      "https://httpbun.com", 
+      match.is_table({ method = "GET", ssl_verify = false })
+    )
+
+    mocked_instance.request_uri = function(_, _)
+      return { status = 200 }
+    end
+  end)
+
+  it("should be nil with http status is 400.", function()
+    mocked_instance.request_uri = function(_, _)
+      return { status = 400 }
+    end
+
+    spy.on(mocked_instance, "request_uri")
+
+    assert.is_nil(actual.fetch_pub_key("mocked_username_0007"))
+    assert.spy(mocked_instance.request_uri).was_called_with(
+      match._,
+      "https://httpbun.com", 
+      match.is_table({ method = "GET", ssl_verify = false })
+    )
+
+    mocked_instance.request_uri = function(_, _)
+      return { status = 200 }
+    end
+  end)
+end)
+
+describe("verify_jwt", function()
+
+  it("should be true.", function()
+    local token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1vY2tlZF91c2VybmFtZSJ9.EajRp033Z3fSJMWcshy9nm9dgiGT0gLU3bR6kDRwlSPKXXATzhluuYQu3OJZS4aoKgtcYQuT7LKVbBDnohtpYxIjeNPycrwxJKwGMLZjVzK_afsKKqlGk0cGtnmP7B2tc2wLQLBaheHHXZO684PNBN3L-8rXiNjZ8psGY3YNpY29BlDCt5P4-G1fBm6DKClOWAB_P_aslarB_M0MqjiB1RiXUhEOiqA0F4QxY8E03cZdWoJbCLiUOlR2hTAzBV_A6qGb3zeH2cMoNMRw56Ci0oygvuPj0hSPjSZ8XYt6FvcTvWXgyX9DgLdLZOImH5VqzdVXYaxCaJosMi3gk_8d1Q"
+    local verify, err = actual.verify_jwt(token)
+    assert.is_true(verify)
+  end)
+
+  it("should be false with token is expired.", function()
+    assert.is_false(actual.verify_jwt("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1vY2tlZC11c2VybmFtZSIsImV4cCI6MTUwNjIzOTAyMn0.P4TnpxPnMMhFB9ReXguAW0synfuguFvChRATKiMgvi0WTwMc8o7SfmxBJsXGzuZFaDbuKwLFT4VkBi_55u9jFdd42BSwPrLdYC6Kzddj4Ah5IvBj3_3RLQCDoOobwxb9afS4jfMVcCZKiJDBaWdAe6YpMKOtxiaIWHHU4w_E-e-2rZDpkB4tA9wWO1zzMjtY8bqyHfH2O2VR8D8gXgFQEscU6TkWSK4sD2bLn8kxvePA9u_OR8oWWnYS-T_EiTDliy4EhH4S-JRAz_q8suNm7T4k4sH28k5UD4a5jYoGL0eltjAiwW9HghtcWmVaHZTRegx6ZgqqTACVmgbn5iln3Q"))
+  end)
+
+  it("should be false with token is malformed.", function()
+    assert.is_false(actual.verify_jwt("malformed"))
+  end)
+
+  it("should be false with token is nil.", function()
+    assert.is_false(actual.verify_jwt(nil))
+  end)
+end)
 
 describe("verify_sig", function()
   it("should be true.", function()
@@ -72,27 +172,6 @@ describe("verify_sig", function()
   end)
 end)
 
-describe("verify_jwt", function()
-
-  it("should be true.", function()
-    local token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1vY2tlZF91c2VybmFtZSJ9.EajRp033Z3fSJMWcshy9nm9dgiGT0gLU3bR6kDRwlSPKXXATzhluuYQu3OJZS4aoKgtcYQuT7LKVbBDnohtpYxIjeNPycrwxJKwGMLZjVzK_afsKKqlGk0cGtnmP7B2tc2wLQLBaheHHXZO684PNBN3L-8rXiNjZ8psGY3YNpY29BlDCt5P4-G1fBm6DKClOWAB_P_aslarB_M0MqjiB1RiXUhEOiqA0F4QxY8E03cZdWoJbCLiUOlR2hTAzBV_A6qGb3zeH2cMoNMRw56Ci0oygvuPj0hSPjSZ8XYt6FvcTvWXgyX9DgLdLZOImH5VqzdVXYaxCaJosMi3gk_8d1Q"
-    local verify, err = actual.verify_jwt(token)
-    assert.is_true(verify)
-  end)
-
-  it("should be false with token is expired.", function()
-    assert.is_false(actual.verify_jwt("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1vY2tlZC11c2VybmFtZSIsImV4cCI6MTUwNjIzOTAyMn0.P4TnpxPnMMhFB9ReXguAW0synfuguFvChRATKiMgvi0WTwMc8o7SfmxBJsXGzuZFaDbuKwLFT4VkBi_55u9jFdd42BSwPrLdYC6Kzddj4Ah5IvBj3_3RLQCDoOobwxb9afS4jfMVcCZKiJDBaWdAe6YpMKOtxiaIWHHU4w_E-e-2rZDpkB4tA9wWO1zzMjtY8bqyHfH2O2VR8D8gXgFQEscU6TkWSK4sD2bLn8kxvePA9u_OR8oWWnYS-T_EiTDliy4EhH4S-JRAz_q8suNm7T4k4sH28k5UD4a5jYoGL0eltjAiwW9HghtcWmVaHZTRegx6ZgqqTACVmgbn5iln3Q"))
-  end)
-
-  it("should be false with token is malformed.", function()
-    assert.is_false(actual.verify_jwt("malformed"))
-  end)
-
-  it("should be false with token is nil.", function()
-    assert.is_false(actual.verify_jwt(nil))
-  end)
-end)
-
 describe("access", function()
   it("should be nil with token valid.", function()
     local mocked_token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1vY2tlZF91c2VybmFtZSJ9.EajRp033Z3fSJMWcshy9nm9dgiGT0gLU3bR6kDRwlSPKXXATzhluuYQu3OJZS4aoKgtcYQuT7LKVbBDnohtpYxIjeNPycrwxJKwGMLZjVzK_afsKKqlGk0cGtnmP7B2tc2wLQLBaheHHXZO684PNBN3L-8rXiNjZ8psGY3YNpY29BlDCt5P4-G1fBm6DKClOWAB_P_aslarB_M0MqjiB1RiXUhEOiqA0F4QxY8E03cZdWoJbCLiUOlR2hTAzBV_A6qGb3zeH2cMoNMRw56Ci0oygvuPj0hSPjSZ8XYt6FvcTvWXgyX9DgLdLZOImH5VqzdVXYaxCaJosMi3gk_8d1Q"
@@ -145,7 +224,11 @@ describe("access", function()
     local status, body = actual.access({}, {})
 
     assert.equal(401, status)
-    assert.equal("Unauthenticated", body.message)
+    assert.equal(cjson.encode({
+        status = "error",
+        message = "Unauthorized",
+        code = 40101
+    }), body, body)
   end)
 
     it("should be 401 with signature invalid.", function()
@@ -166,7 +249,11 @@ describe("access", function()
     local status, body = actual.access({}, {})
 
     assert.equal(401, status)
-    assert.equal("Unauthenticated", body.message)
+    assert.equal(cjson.encode({
+        status = "error",
+        message = "Unauthorized",
+        code = 40101
+    }), body)
   end)
 
   it("should be 401 with token and signature do not exist.", function()
@@ -179,6 +266,10 @@ describe("access", function()
     local status, body = actual.access({}, {})
 
     assert.equal(401, status)
-    assert.equal("Missing authentication headers", body.message)
+    assert.equal(cjson.encode({
+        status = "error",
+        message = "Unauthorized",
+        code = 40101
+    }), body)
   end)
 end)
