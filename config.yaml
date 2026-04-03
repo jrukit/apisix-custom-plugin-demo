@@ -13,4 +13,4 @@ deployment:
     config_provider: yaml
 
 plugins:
-  - dump
+  - custom-signature-authorizer

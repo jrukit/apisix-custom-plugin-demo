@@ -2,8 +2,8 @@ plugin_configs:
     -
         id: 1
         plugins:
-            dump:
-                body: "Dump plugin is working."
+            custom-signature-authorizer:
+                body: "custom-signature-authorizer plugin is working."
 routes:
     - id: 1
       uri: /*
