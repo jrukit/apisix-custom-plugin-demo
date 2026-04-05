@@ -62,13 +62,7 @@ local function verify_jwt(token)
            jwt:verify(fetch_pub_key(username), token).verified
 end
 
-local function verify_sig(signature)
-    local username = core.request.header(ctx, "username")
-    local timestamp = core.request.header(ctx, "Timestamp")
-    if not username or not timestamp then
-        return false
-    end
-
+local function verify_sig(signature, username, timestamp)
     local pub, err = openssl_pkey.new(fetch_pub_key(username))
     local data = timestamp .. username
     return pub and pub:verify(decode_base64(signature), data) or false
@@ -77,9 +71,20 @@ end
 function _M.access(conf, ctx)
     local token_header = core.request.header(ctx, "Token")
     local sig_header = core.request.header(ctx, "X-Signature")
+    local username = core.request.header(ctx, "username")
+    local timestamp = core.request.header(ctx, "Timestamp")
 
-    if (not token_header or not verify_jwt(token_header)) and 
-       (not sig_header or not verify_sig(sig_header)) then
+    if not token_header and 
+       not (sig_header and username and timestamp) then
+        return 403, cjson.encode({
+        status = "error",
+        message = "Forbidden",
+        code = 40301,
+        })
+    end
+
+    if not (token_header and verify_jwt(token_header)) and 
+       not (sig_header and verify_sig(sig_header, username, timestamp)) then
         return 401, cjson.encode({
         status = "error",
         message = "Unauthorized",

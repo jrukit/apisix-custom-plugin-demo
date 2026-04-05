@@ -160,101 +160,28 @@ end)
 
 describe("verify_sig", function()
   it("should be true.", function()
-    mocked_core.request = {
-      header = function(_, x)
-        if x == "username" then
-          return "mocked_username"
-        else
-            return "1516239022"
-        end
-      end
-    }
     local signature = "H97SMgCZOxDNMBvJ+CxOtJjC0AXGop0sAMSxh/J+fVn6SdAooILe1APPG2GjeDmsPy3fXh7gFucB0mhkwfCtNK1FrwHfU/gfpN8wplh9xDeTmpMeuUCEyHuNJVSRQSUj/mUeW3mWI7ufOg7i/B2yi8PmxPVWrs66l88TzOwit8iZN0P7AEJ9+BRaILKpOzY5VNqxjHnK9mTswyXgXRgG1Z6q15KgoOgUB5aXWigSb7snnA0G/HOTpHcoJTgGgF9kh1N59cZPUqm9M908vMj91RRhsmPtkUfVSva9r6Nz5bykW2uF0BB6mxe4p1Bt4OshufBL/lzshqarC0jA0BUJ3A=="
     
-    assert.is_true(actual.verify_sig(signature))
+    assert.is_true(actual.verify_sig(signature, "mocked_username", "1516239022"))
   end)
 
   it("should be false with malformed signature.", function()
-    mocked_core.request = {
-      header = function(_, x)
-        if x == "username" then
-          return "mocked_username"
-        else
-            return "1516239022"
-        end
-      end
-    }
     local signature = "malformed"
 
-    assert.is_false(actual.verify_sig(signature))
+    assert.is_false(actual.verify_sig(signature, "mocked_username", "1516239022"))
   end)
 
   it("should be false with signature not matched.", function()
-    mocked_core.request = {
-      header = function(_)
-        return "mocked_username"
-      end
-    }
     -- signature is "invalid:invalid"
     local signature = "bh3jHE9Z/G0Hy/cK/a+XSu0WMLhf0xliKTyBeblRL2bPJpAGuDYqzCu6NRbJbTbpIsKyClqg+yLMPhSXDd2Tm33uPaaZfO8CJZxdtsg3/2Un+YH5ueCUR0HvMaIiNbygr4oAOQHq1yNEw1usV5xFqQlHdPVWJf0HRiX25JqEvQ2ZFWu8w206bHRDSK6IHu6WfMoO4fYdGLYRfPmv1Hw5fxS7wlSc6teV7JwSrS+TbQdzgyn4aupKEZVVcjSCYyHg/7pSPTbKKQBT8k/YLICCB0iUHDJ39xDHrR6fC0a2PkBHIyZwOLB+nnQbUN2wtKLk1d8kDb+0UHbrot69Zcubrg=="
 
-    assert.is_false(actual.verify_sig(signature))
+    assert.is_false(actual.verify_sig(signature, "mocked_username", "1516239022"))
   end)
 
   it("should be false with key pair not matched.", function()
-    mocked_core.request = {
-      header = function(_, x)
-        if x == "username" then
-          return "mocked_unknown_username"
-        else
-            return "1516239022"
-        end
-      end
-    }
     local signature = "LlPjkJFoZZyBEjHAluqv28kNN2aS48yNfk7L1j9cFtn42V++G9lq9NKnS6wDa22lN+91aRBbMA/lv7pnOH8JdvxnbWuiRbhP1xfVp4jK7v2GkVMcM8Wwv4Bs+sNjlOTbgdqBnxyQUOTgZRnGk1TBGtZC2vOKw6AFWI3Us2huRONNKcy45/RDlgY+KGhIIrd46IQ+HByBGsVESjLlmePaegPA2DbB3twMvsRytYd7zNTQ0zOSyI4ppPMRdX9nzQ9dgTveHI2Vqem7qSTODR5DmZCXixK9P7uBguKN6EwpRknHtpsO/IjYMvpp3AOQwQ9ERlKEc5bvgJiYpmj/Ck3qSw=="
   
-    assert.is_false(actual.verify_sig(signature))
-  end)
-
-  it("should be false with username headers is nil.", function()
-    mocked_core.request = {
-      header = function(_, x)
-        if x == "username" then
-          return nil
-        else
-            return "1516239022"
-        end
-      end
-    }
-    local signature = "H97SMgCZOxDNMBvJ+CxOtJjC0AXGop0sAMSxh/J+fVn6SdAooILe1APPG2GjeDmsPy3fXh7gFucB0mhkwfCtNK1FrwHfU/gfpN8wplh9xDeTmpMeuUCEyHuNJVSRQSUj/mUeW3mWI7ufOg7i/B2yi8PmxPVWrs66l88TzOwit8iZN0P7AEJ9+BRaILKpOzY5VNqxjHnK9mTswyXgXRgG1Z6q15KgoOgUB5aXWigSb7snnA0G/HOTpHcoJTgGgF9kh1N59cZPUqm9M908vMj91RRhsmPtkUfVSva9r6Nz5bykW2uF0BB6mxe4p1Bt4OshufBL/lzshqarC0jA0BUJ3A=="
-    
-    assert.is_false(actual.verify_sig(signature))
-  end)
-
-  it("should be false with timestamp headers is nil.", function()
-    mocked_core.request = {
-      header = function(_, x)
-        if x == "username" then
-          return "mocked_username"
-        else
-            return nil
-        end
-      end
-    }
-    local signature = "H97SMgCZOxDNMBvJ+CxOtJjC0AXGop0sAMSxh/J+fVn6SdAooILe1APPG2GjeDmsPy3fXh7gFucB0mhkwfCtNK1FrwHfU/gfpN8wplh9xDeTmpMeuUCEyHuNJVSRQSUj/mUeW3mWI7ufOg7i/B2yi8PmxPVWrs66l88TzOwit8iZN0P7AEJ9+BRaILKpOzY5VNqxjHnK9mTswyXgXRgG1Z6q15KgoOgUB5aXWigSb7snnA0G/HOTpHcoJTgGgF9kh1N59cZPUqm9M908vMj91RRhsmPtkUfVSva9r6Nz5bykW2uF0BB6mxe4p1Bt4OshufBL/lzshqarC0jA0BUJ3A=="
-    
-    assert.is_false(actual.verify_sig(signature))
-  end)
-
-  it("should be false with both username and timestamp headers are nil.", function()
-    mocked_core.request = {
-      header = function(_, x)
-        return nil
-      end
-    }
-    local signature = "H97SMgCZOxDNMBvJ+CxOtJjC0AXGop0sAMSxh/J+fVn6SdAooILe1APPG2GjeDmsPy3fXh7gFucB0mhkwfCtNK1FrwHfU/gfpN8wplh9xDeTmpMeuUCEyHuNJVSRQSUj/mUeW3mWI7ufOg7i/B2yi8PmxPVWrs66l88TzOwit8iZN0P7AEJ9+BRaILKpOzY5VNqxjHnK9mTswyXgXRgG1Z6q15KgoOgUB5aXWigSb7snnA0G/HOTpHcoJTgGgF9kh1N59cZPUqm9M908vMj91RRhsmPtkUfVSva9r6Nz5bykW2uF0BB6mxe4p1Bt4OshufBL/lzshqarC0jA0BUJ3A=="
-    
-    assert.is_false(actual.verify_sig(signature))
+    assert.is_false(actual.verify_sig(signature, "mocked_unknown_username", "1516239022"))
   end)
 end)
 
@@ -348,7 +275,7 @@ describe("access", function()
     }), body)
   end)
 
-  it("should be 401 with token and signature do not exist.", function()
+  it("should be 403 with token and signature do not exist.", function()
     mocked_core.request = {
       header = function(_)
         return nil
@@ -357,11 +284,84 @@ describe("access", function()
 
     local status, body = actual.access({}, {})
 
-    assert.equal(401, status)
+    assert.equal(403, status)
     assert.equal(cjson.encode({
         status = "error",
-        message = "Unauthorized",
-        code = 40101
+        message = "Forbidden",
+        code = 40301
+    }), body)
+  end)
+
+  it("should be 403 with signature exists but username does not exist.", function()
+    mocked_core.request = {
+      header = function(_, x)
+        if x == "Token" then
+          return nil
+        elseif x == "X-Signature" then
+          return "H97SMgCZOxDNMBvJ+CxOtJjC0AXGop0sAMSxh/J+fVn6SdAooILe1APPG2GjeDmsPy3fXh7gFucB0mhkwfCtNK1FrwHfU/gfpN8wplh9xDeTmpMeuUCEyHuNJVSRQSUj/mUeW3mWI7ufOg7i/B2yi8PmxPVWrs66l88TzOwit8iZN0P7AEJ9+BRaILKpOzY5VNqxjHnK9mTswyXgXRgG1Z6q15KgoOgUB5aXWigSb7snnA0G/HOTpHcoJTgGgF9kh1N59cZPUqm9M908vMj91RRhsmPtkUfVSva9r6Nz5bykW2uF0BB6mxe4p1Bt4OshufBL/lzshqarC0jA0BUJ3A=="
+        elseif x == "Timestamp" then
+          return "mocked_username"
+        else
+          return nil
+        end
+      end
+    }
+
+    local status, body = actual.access({}, {})
+
+    assert.equal(403, status)
+    assert.equal(cjson.encode({
+        status = "error",
+        message = "Forbidden",
+        code = 40301
+    }), body)
+  end)
+
+  it("should be 403 with signature exists but timestamp does not exist.", function()
+    mocked_core.request = {
+      header = function(_, x)
+        if x == "Token" then
+          return nil
+        elseif x == "X-Signature" then
+          return "H97SMgCZOxDNMBvJ+CxOtJjC0AXGop0sAMSxh/J+fVn6SdAooILe1APPG2GjeDmsPy3fXh7gFucB0mhkwfCtNK1FrwHfU/gfpN8wplh9xDeTmpMeuUCEyHuNJVSRQSUj/mUeW3mWI7ufOg7i/B2yi8PmxPVWrs66l88TzOwit8iZN0P7AEJ9+BRaILKpOzY5VNqxjHnK9mTswyXgXRgG1Z6q15KgoOgUB5aXWigSb7snnA0G/HOTpHcoJTgGgF9kh1N59cZPUqm9M908vMj91RRhsmPtkUfVSva9r6Nz5bykW2uF0BB6mxe4p1Bt4OshufBL/lzshqarC0jA0BUJ3A=="
+        elseif x == "username" then
+          return "mocked_username"
+        else
+          return nil
+        end
+      end
+    }
+
+    local status, body = actual.access({}, {})
+
+    assert.equal(403, status)
+    assert.equal(cjson.encode({
+        status = "error",
+        message = "Forbidden",
+        code = 40301
+    }), body)
+  end)
+
+  it("should be 403 with signature exists but both username and timestamp do not exist.", function()
+    mocked_core.request = {
+      header = function(_, x)
+        if x == "Token" then
+          return nil
+        elseif x == "X-Signature" then
+          return "H97SMgCZOxDNMBvJ+CxOtJjC0AXGop0sAMSxh/J+fVn6SdAooILe1APPG2GjeDmsPy3fXh7gFucB0mhkwfCtNK1FrwHfU/gfpN8wplh9xDeTmpMeuUCEyHuNJVSRQSUj/mUeW3mWI7ufOg7i/B2yi8PmxPVWrs66l88TzOwit8iZN0P7AEJ9+BRaILKpOzY5VNqxjHnK9mTswyXgXRgG1Z6q15KgoOgUB5aXWigSb7snnA0G/HOTpHcoJTgGgF9kh1N59cZPUqm9M908vMj91RRhsmPtkUfVSva9r6Nz5bykW2uF0BB6mxe4p1Bt4OshufBL/lzshqarC0jA0BUJ3A=="
+        else
+          return nil
+        end
+      end
+    }
+
+    local status, body = actual.access({}, {})
+
+    assert.equal(403, status)
+    assert.equal(cjson.encode({
+        status = "error",
+        message = "Forbidden",
+        code = 40301
     }), body)
   end)
 end)
