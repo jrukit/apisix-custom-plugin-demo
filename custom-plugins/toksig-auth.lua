@@ -46,6 +46,12 @@ local function fetch_pub_key(username)
     return pub_keys[username]
 end
 
+local function verify_sig(signature, username, timestamp)
+    local pub, err = openssl_pkey.new(fetch_pub_key(username))
+    local data = timestamp .. username
+    return pub and pub:verify(decode_base64(signature), data, "sha256") or false
+end
+
 local function extract_username(token)
     local jwt_obj = jwt:load_jwt(token)
     if not jwt_obj.valid or not jwt_obj.payload.username then
@@ -58,24 +64,35 @@ end
 local function verify_jwt(token)
     local username = extract_username(token)
 
-    return username and
+    return username ~= nil and
            jwt:verify(fetch_pub_key(username), token).verified
 end
 
-local function verify_sig(signature, username, timestamp)
-    local pub, err = openssl_pkey.new(fetch_pub_key(username))
-    local data = timestamp .. username
-    return pub and pub:verify(decode_base64(signature), data) or false
+local function is_present(str)
+    return str ~= nil and str ~= ""
+end
+
+local function is_jwt_valid(token)
+    return is_present(token) and verify_jwt(token)
+end
+
+local function is_sig_valid(token, sig, username, ts)
+    return not is_present(token) and verify_sig(sig, username, ts)
+end
+
+local function has_sig_bundle(sig, username, ts)
+    return is_present(sig) and
+           is_present(username) and
+           is_present(ts)
 end
 
 function _M.access(conf, ctx)
-    local token_header = core.request.header(ctx, "Token")
-    local sig_header = core.request.header(ctx, "X-Signature")
+    local token = core.request.header(ctx, "Token")
+    local sig = core.request.header(ctx, "X-Signature")
     local username = core.request.header(ctx, "username")
-    local timestamp = core.request.header(ctx, "Timestamp")
+    local ts = core.request.header(ctx, "Timestamp")
 
-    if not token_header and 
-       not (sig_header and username and timestamp) then
+    if not is_present(token) and not has_sig_bundle(sig, username, ts) then
         return 403, cjson.encode({
         status = "error",
         message = "Forbidden",
@@ -83,8 +100,7 @@ function _M.access(conf, ctx)
         })
     end
 
-    if not (token_header and verify_jwt(token_header)) and 
-       not (sig_header and verify_sig(sig_header, username, timestamp)) then
+    if not is_jwt_valid(token) and not is_sig_valid(token, sig, username, ts) then
         return 401, cjson.encode({
         status = "error",
         message = "Unauthorized",
@@ -95,8 +111,12 @@ end
 
 if _G._TEST then
     _M.fetch_pub_key = fetch_pub_key
+    _M.verify_sig = verify_sig
     _M.extract_username = extract_username
     _M.verify_jwt = verify_jwt
-    _M.verify_sig = verify_sig
+    _M.is_present = is_present
+    _M.is_jwt_valid = is_jwt_valid
+    _M.is_sig_valid = is_sig_valid
+    _M.has_sig_bundle = has_sig_bundle
 end
 return _M

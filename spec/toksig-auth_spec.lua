@@ -56,8 +56,7 @@ end)
 
 describe("fetch_pub_key", function()
   before_each(function()
-    mocked_instance.request_uri = function(_, _) return { status = 200 }
-    end
+    mocked_instance.request_uri = function(_, _) return { status = 200 } end
   end)
 
   it("should be publick key.", function()
@@ -115,6 +114,37 @@ describe("fetch_pub_key", function()
   end)
 end)
 
+describe("verify_sig", function()
+  before_each(function()
+    mocked_instance.request_uri = function(_, _) return { status = 200 } end
+  end)
+
+  it("should be true.", function()
+    local sig = "H97SMgCZOxDNMBvJ+CxOtJjC0AXGop0sAMSxh/J+fVn6SdAooILe1APPG2GjeDmsPy3fXh7gFucB0mhkwfCtNK1FrwHfU/gfpN8wplh9xDeTmpMeuUCEyHuNJVSRQSUj/mUeW3mWI7ufOg7i/B2yi8PmxPVWrs66l88TzOwit8iZN0P7AEJ9+BRaILKpOzY5VNqxjHnK9mTswyXgXRgG1Z6q15KgoOgUB5aXWigSb7snnA0G/HOTpHcoJTgGgF9kh1N59cZPUqm9M908vMj91RRhsmPtkUfVSva9r6Nz5bykW2uF0BB6mxe4p1Bt4OshufBL/lzshqarC0jA0BUJ3A=="
+    
+    assert.is_true(actual.verify_sig(sig, "mocked_username", "1516239022"))
+  end)
+
+  it("should be false with malformed signature.", function()
+    local signature = "malformed"
+
+    assert.is_false(actual.verify_sig(signature, "mocked_username", "1516239022"))
+  end)
+
+  it("should be false with signature not matched.", function()
+    -- signature is "invalid:invalid"
+    local signature = "bh3jHE9Z/G0Hy/cK/a+XSu0WMLhf0xliKTyBeblRL2bPJpAGuDYqzCu6NRbJbTbpIsKyClqg+yLMPhSXDd2Tm33uPaaZfO8CJZxdtsg3/2Un+YH5ueCUR0HvMaIiNbygr4oAOQHq1yNEw1usV5xFqQlHdPVWJf0HRiX25JqEvQ2ZFWu8w206bHRDSK6IHu6WfMoO4fYdGLYRfPmv1Hw5fxS7wlSc6teV7JwSrS+TbQdzgyn4aupKEZVVcjSCYyHg/7pSPTbKKQBT8k/YLICCB0iUHDJ39xDHrR6fC0a2PkBHIyZwOLB+nnQbUN2wtKLk1d8kDb+0UHbrot69Zcubrg=="
+
+    assert.is_false(actual.verify_sig(signature, "mocked_username", "1516239022"))
+  end)
+
+  it("should be false with key pair not matched.", function()
+    local signature = "LlPjkJFoZZyBEjHAluqv28kNN2aS48yNfk7L1j9cFtn42V++G9lq9NKnS6wDa22lN+91aRBbMA/lv7pnOH8JdvxnbWuiRbhP1xfVp4jK7v2GkVMcM8Wwv4Bs+sNjlOTbgdqBnxyQUOTgZRnGk1TBGtZC2vOKw6AFWI3Us2huRONNKcy45/RDlgY+KGhIIrd46IQ+HByBGsVESjLlmePaegPA2DbB3twMvsRytYd7zNTQ0zOSyI4ppPMRdX9nzQ9dgTveHI2Vqem7qSTODR5DmZCXixK9P7uBguKN6EwpRknHtpsO/IjYMvpp3AOQwQ9ERlKEc5bvgJiYpmj/Ck3qSw=="
+  
+    assert.is_false(actual.verify_sig(signature, "mocked_unknown_username", "1516239022"))
+  end)
+end)
+
 describe("extract_username", function()
   it("should be username.", function()
     local token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1vY2tlZF91c2VybmFtZSJ9.EajRp033Z3fSJMWcshy9nm9dgiGT0gLU3bR6kDRwlSPKXXATzhluuYQu3OJZS4aoKgtcYQuT7LKVbBDnohtpYxIjeNPycrwxJKwGMLZjVzK_afsKKqlGk0cGtnmP7B2tc2wLQLBaheHHXZO684PNBN3L-8rXiNjZ8psGY3YNpY29BlDCt5P4-G1fBm6DKClOWAB_P_aslarB_M0MqjiB1RiXUhEOiqA0F4QxY8E03cZdWoJbCLiUOlR2hTAzBV_A6qGb3zeH2cMoNMRw56Ci0oygvuPj0hSPjSZ8XYt6FvcTvWXgyX9DgLdLZOImH5VqzdVXYaxCaJosMi3gk_8d1Q"
@@ -156,32 +186,120 @@ describe("verify_jwt", function()
 
     assert.is_false(actual.verify_jwt(token_no_has_username))
   end)
+
+  it("should be false with toekn is malformed.", function()
+    assert.is_false(actual.verify_jwt("malformed"))
+  end)
 end)
 
-describe("verify_sig", function()
+describe("is_present", function()
   it("should be true.", function()
-    local signature = "H97SMgCZOxDNMBvJ+CxOtJjC0AXGop0sAMSxh/J+fVn6SdAooILe1APPG2GjeDmsPy3fXh7gFucB0mhkwfCtNK1FrwHfU/gfpN8wplh9xDeTmpMeuUCEyHuNJVSRQSUj/mUeW3mWI7ufOg7i/B2yi8PmxPVWrs66l88TzOwit8iZN0P7AEJ9+BRaILKpOzY5VNqxjHnK9mTswyXgXRgG1Z6q15KgoOgUB5aXWigSb7snnA0G/HOTpHcoJTgGgF9kh1N59cZPUqm9M908vMj91RRhsmPtkUfVSva9r6Nz5bykW2uF0BB6mxe4p1Bt4OshufBL/lzshqarC0jA0BUJ3A=="
-    
-    assert.is_true(actual.verify_sig(signature, "mocked_username", "1516239022"))
+    assert.is_true(actual.is_present("mocked-string"))
   end)
 
-  it("should be false with malformed signature.", function()
-    local signature = "malformed"
-
-    assert.is_false(actual.verify_sig(signature, "mocked_username", "1516239022"))
+  it("should be false with nil.", function()
+    assert.is_false(actual.is_present(nil))
   end)
 
-  it("should be false with signature not matched.", function()
-    -- signature is "invalid:invalid"
-    local signature = "bh3jHE9Z/G0Hy/cK/a+XSu0WMLhf0xliKTyBeblRL2bPJpAGuDYqzCu6NRbJbTbpIsKyClqg+yLMPhSXDd2Tm33uPaaZfO8CJZxdtsg3/2Un+YH5ueCUR0HvMaIiNbygr4oAOQHq1yNEw1usV5xFqQlHdPVWJf0HRiX25JqEvQ2ZFWu8w206bHRDSK6IHu6WfMoO4fYdGLYRfPmv1Hw5fxS7wlSc6teV7JwSrS+TbQdzgyn4aupKEZVVcjSCYyHg/7pSPTbKKQBT8k/YLICCB0iUHDJ39xDHrR6fC0a2PkBHIyZwOLB+nnQbUN2wtKLk1d8kDb+0UHbrot69Zcubrg=="
+  it("should be false with empty.", function()
+    assert.is_false(actual.is_present(""))
+  end)
+end)
 
-    assert.is_false(actual.verify_sig(signature, "mocked_username", "1516239022"))
+describe("is_jwt_valid", function()
+  before_each(function()
+    mocked_instance.request_uri = function(_, _) return { status = 200 } end
   end)
 
-  it("should be false with key pair not matched.", function()
-    local signature = "LlPjkJFoZZyBEjHAluqv28kNN2aS48yNfk7L1j9cFtn42V++G9lq9NKnS6wDa22lN+91aRBbMA/lv7pnOH8JdvxnbWuiRbhP1xfVp4jK7v2GkVMcM8Wwv4Bs+sNjlOTbgdqBnxyQUOTgZRnGk1TBGtZC2vOKw6AFWI3Us2huRONNKcy45/RDlgY+KGhIIrd46IQ+HByBGsVESjLlmePaegPA2DbB3twMvsRytYd7zNTQ0zOSyI4ppPMRdX9nzQ9dgTveHI2Vqem7qSTODR5DmZCXixK9P7uBguKN6EwpRknHtpsO/IjYMvpp3AOQwQ9ERlKEc5bvgJiYpmj/Ck3qSw=="
-  
-    assert.is_false(actual.verify_sig(signature, "mocked_unknown_username", "1516239022"))
+  setup(function()
+    mocked_instance.request_uri = function(_, _) return { status = 200 }
+    end
+  end)
+
+  it("should be true", function()
+    local token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1vY2tlZF91c2VybmFtZSJ9.EajRp033Z3fSJMWcshy9nm9dgiGT0gLU3bR6kDRwlSPKXXATzhluuYQu3OJZS4aoKgtcYQuT7LKVbBDnohtpYxIjeNPycrwxJKwGMLZjVzK_afsKKqlGk0cGtnmP7B2tc2wLQLBaheHHXZO684PNBN3L-8rXiNjZ8psGY3YNpY29BlDCt5P4-G1fBm6DKClOWAB_P_aslarB_M0MqjiB1RiXUhEOiqA0F4QxY8E03cZdWoJbCLiUOlR2hTAzBV_A6qGb3zeH2cMoNMRw56Ci0oygvuPj0hSPjSZ8XYt6FvcTvWXgyX9DgLdLZOImH5VqzdVXYaxCaJosMi3gk_8d1Q"
+    assert.is_true(actual.is_jwt_valid(token))
+  end)
+
+  it("should be false with token does not exist.", function()
+    assert.is_false(actual.is_jwt_valid(nil))
+  end)
+
+  it("should be false with invalid token.", function()
+    assert.is_false(actual.is_jwt_valid("malformed"))
+  end)
+end)
+
+describe("is_sig_valid", function()
+  before_each(function()
+    mocked_instance.request_uri = function(_, _) return { status = 200 } end
+  end)
+
+  it("should be true", function()
+    local sig = "H97SMgCZOxDNMBvJ+CxOtJjC0AXGop0sAMSxh/J+fVn6SdAooILe1APPG2GjeDmsPy3fXh7gFucB0mhkwfCtNK1FrwHfU/gfpN8wplh9xDeTmpMeuUCEyHuNJVSRQSUj/mUeW3mWI7ufOg7i/B2yi8PmxPVWrs66l88TzOwit8iZN0P7AEJ9+BRaILKpOzY5VNqxjHnK9mTswyXgXRgG1Z6q15KgoOgUB5aXWigSb7snnA0G/HOTpHcoJTgGgF9kh1N59cZPUqm9M908vMj91RRhsmPtkUfVSva9r6Nz5bykW2uF0BB6mxe4p1Bt4OshufBL/lzshqarC0jA0BUJ3A=="
+
+    assert.is_true(actual.is_sig_valid(nil, sig, "mocked_username", "1516239022"))
+  end)
+
+  it("should be false with valid signature but token.", function()
+    local token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1vY2tlZF91c2VybmFtZSJ9.EajRp033Z3fSJMWcshy9nm9dgiGT0gLU3bR6kDRwlSPKXXATzhluuYQu3OJZS4aoKgtcYQuT7LKVbBDnohtpYxIjeNPycrwxJKwGMLZjVzK_afsKKqlGk0cGtnmP7B2tc2wLQLBaheHHXZO684PNBN3L-8rXiNjZ8psGY3YNpY29BlDCt5P4-G1fBm6DKClOWAB_P_aslarB_M0MqjiB1RiXUhEOiqA0F4QxY8E03cZdWoJbCLiUOlR2hTAzBV_A6qGb3zeH2cMoNMRw56Ci0oygvuPj0hSPjSZ8XYt6FvcTvWXgyX9DgLdLZOImH5VqzdVXYaxCaJosMi3gk_8d1Q"
+    local sig = "H97SMgCZOxDNMBvJ+CxOtJjC0AXGop0sAMSxh/J+fVn6SdAooILe1APPG2GjeDmsPy3fXh7gFucB0mhkwfCtNK1FrwHfU/gfpN8wplh9xDeTmpMeuUCEyHuNJVSRQSUj/mUeW3mWI7ufOg7i/B2yi8PmxPVWrs66l88TzOwit8iZN0P7AEJ9+BRaILKpOzY5VNqxjHnK9mTswyXgXRgG1Z6q15KgoOgUB5aXWigSb7snnA0G/HOTpHcoJTgGgF9kh1N59cZPUqm9M908vMj91RRhsmPtkUfVSva9r6Nz5bykW2uF0BB6mxe4p1Bt4OshufBL/lzshqarC0jA0BUJ3A=="
+    assert.is_false(actual.is_sig_valid(token, sig, "mocked_username", "1516239022"))
+  end)
+
+  it("should be false with signature does not exist.", function()
+    local token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1vY2tlZF91c2VybmFtZSJ9.EajRp033Z3fSJMWcshy9nm9dgiGT0gLU3bR6kDRwlSPKXXATzhluuYQu3OJZS4aoKgtcYQuT7LKVbBDnohtpYxIjeNPycrwxJKwGMLZjVzK_afsKKqlGk0cGtnmP7B2tc2wLQLBaheHHXZO684PNBN3L-8rXiNjZ8psGY3YNpY29BlDCt5P4-G1fBm6DKClOWAB_P_aslarB_M0MqjiB1RiXUhEOiqA0F4QxY8E03cZdWoJbCLiUOlR2hTAzBV_A6qGb3zeH2cMoNMRw56Ci0oygvuPj0hSPjSZ8XYt6FvcTvWXgyX9DgLdLZOImH5VqzdVXYaxCaJosMi3gk_8d1Q"
+    assert.is_false(actual.is_sig_valid(token, nil, "mocked_username", "1516239022"))
+  end)
+
+  it("should be false with invalid signature.", function()
+    local token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1vY2tlZF91c2VybmFtZSJ9.EajRp033Z3fSJMWcshy9nm9dgiGT0gLU3bR6kDRwlSPKXXATzhluuYQu3OJZS4aoKgtcYQuT7LKVbBDnohtpYxIjeNPycrwxJKwGMLZjVzK_afsKKqlGk0cGtnmP7B2tc2wLQLBaheHHXZO684PNBN3L-8rXiNjZ8psGY3YNpY29BlDCt5P4-G1fBm6DKClOWAB_P_aslarB_M0MqjiB1RiXUhEOiqA0F4QxY8E03cZdWoJbCLiUOlR2hTAzBV_A6qGb3zeH2cMoNMRw56Ci0oygvuPj0hSPjSZ8XYt6FvcTvWXgyX9DgLdLZOImH5VqzdVXYaxCaJosMi3gk_8d1Q"
+    assert.is_false(actual.is_sig_valid(token, "malformed", "mocked_username", "1516239022"))
+  end)
+end)
+
+describe("has_sig_bundle", function()
+  it("should be true.", function()
+    local sig = "H97SMgCZOxDNMBvJ+CxOtJjC0AXGop0sAMSxh/J+fVn6SdAooILe1APPG2GjeDmsPy3fXh7gFucB0mhkwfCtNK1FrwHfU/gfpN8wplh9xDeTmpMeuUCEyHuNJVSRQSUj/mUeW3mWI7ufOg7i/B2yi8PmxPVWrs66l88TzOwit8iZN0P7AEJ9+BRaILKpOzY5VNqxjHnK9mTswyXgXRgG1Z6q15KgoOgUB5aXWigSb7snnA0G/HOTpHcoJTgGgF9kh1N59cZPUqm9M908vMj91RRhsmPtkUfVSva9r6Nz5bykW2uF0BB6mxe4p1Bt4OshufBL/lzshqarC0jA0BUJ3A=="
+    local username = "mocked_username"
+    local ts = "1516239022"
+    assert.is_true(actual.has_sig_bundle(sig, username, ts))
+  end)
+
+  it("should be false with signature does not exist.", function()
+    local username = "mocked_username"
+    local ts = "1516239022"
+    assert.is_false(actual.has_sig_bundle(nil, username, ts))
+  end)
+
+  it("should be false with signature is empty.", function()
+    local username = "mocked_username"
+    local ts = "1516239022"
+    assert.is_false(actual.has_sig_bundle("", username, ts))
+  end)
+
+  it("should be false with username does not exist.", function()
+    local sig = "H97SMgCZOxDNMBvJ+CxOtJjC0AXGop0sAMSxh/J+fVn6SdAooILe1APPG2GjeDmsPy3fXh7gFucB0mhkwfCtNK1FrwHfU/gfpN8wplh9xDeTmpMeuUCEyHuNJVSRQSUj/mUeW3mWI7ufOg7i/B2yi8PmxPVWrs66l88TzOwit8iZN0P7AEJ9+BRaILKpOzY5VNqxjHnK9mTswyXgXRgG1Z6q15KgoOgUB5aXWigSb7snnA0G/HOTpHcoJTgGgF9kh1N59cZPUqm9M908vMj91RRhsmPtkUfVSva9r6Nz5bykW2uF0BB6mxe4p1Bt4OshufBL/lzshqarC0jA0BUJ3A=="
+    local ts = "1516239022"
+    assert.is_false(actual.has_sig_bundle(sig, nil, ts))
+  end)
+
+  it("should be false with username is empty.", function()
+    local sig = "H97SMgCZOxDNMBvJ+CxOtJjC0AXGop0sAMSxh/J+fVn6SdAooILe1APPG2GjeDmsPy3fXh7gFucB0mhkwfCtNK1FrwHfU/gfpN8wplh9xDeTmpMeuUCEyHuNJVSRQSUj/mUeW3mWI7ufOg7i/B2yi8PmxPVWrs66l88TzOwit8iZN0P7AEJ9+BRaILKpOzY5VNqxjHnK9mTswyXgXRgG1Z6q15KgoOgUB5aXWigSb7snnA0G/HOTpHcoJTgGgF9kh1N59cZPUqm9M908vMj91RRhsmPtkUfVSva9r6Nz5bykW2uF0BB6mxe4p1Bt4OshufBL/lzshqarC0jA0BUJ3A=="
+    local ts = "1516239022"
+    assert.is_false(actual.has_sig_bundle(sig, "", ts))
+  end)
+
+  it("should be false with timestamp does not exist.", function()
+    local sig = "H97SMgCZOxDNMBvJ+CxOtJjC0AXGop0sAMSxh/J+fVn6SdAooILe1APPG2GjeDmsPy3fXh7gFucB0mhkwfCtNK1FrwHfU/gfpN8wplh9xDeTmpMeuUCEyHuNJVSRQSUj/mUeW3mWI7ufOg7i/B2yi8PmxPVWrs66l88TzOwit8iZN0P7AEJ9+BRaILKpOzY5VNqxjHnK9mTswyXgXRgG1Z6q15KgoOgUB5aXWigSb7snnA0G/HOTpHcoJTgGgF9kh1N59cZPUqm9M908vMj91RRhsmPtkUfVSva9r6Nz5bykW2uF0BB6mxe4p1Bt4OshufBL/lzshqarC0jA0BUJ3A=="
+    local username = "mocked_username"
+    assert.is_false(actual.has_sig_bundle(sig, username, nil))
+  end)
+
+  it("should be false with timestamp is empty.", function()
+    local sig = "H97SMgCZOxDNMBvJ+CxOtJjC0AXGop0sAMSxh/J+fVn6SdAooILe1APPG2GjeDmsPy3fXh7gFucB0mhkwfCtNK1FrwHfU/gfpN8wplh9xDeTmpMeuUCEyHuNJVSRQSUj/mUeW3mWI7ufOg7i/B2yi8PmxPVWrs66l88TzOwit8iZN0P7AEJ9+BRaILKpOzY5VNqxjHnK9mTswyXgXRgG1Z6q15KgoOgUB5aXWigSb7snnA0G/HOTpHcoJTgGgF9kh1N59cZPUqm9M908vMj91RRhsmPtkUfVSva9r6Nz5bykW2uF0BB6mxe4p1Bt4OshufBL/lzshqarC0jA0BUJ3A=="
+    local username = "mocked_username"
+    assert.is_false(actual.has_sig_bundle(sig, username, ""))
   end)
 end)
 
@@ -201,7 +319,7 @@ describe("access", function()
         end
       end
     }
-        
+
     local status, body = actual.access({}, {})
 
     assert.is_nil(status)
@@ -227,6 +345,23 @@ describe("access", function()
 
     assert.is_nil(status)
     assert.is_nil(body)
+  end)
+
+  it("should be 403 with token and signature do not exist.", function()
+    mocked_core.request = {
+      header = function(_)
+        return nil
+      end
+    }
+
+    local status, body = actual.access({}, {})
+
+    assert.equal(403, status)
+    assert.equal(cjson.encode({
+        status = "error",
+        message = "Forbidden",
+        code = 40301
+    }), body)
   end)
 
   it("should be 401 with token invalid.", function()
@@ -275,93 +410,28 @@ describe("access", function()
     }), body)
   end)
 
-  it("should be 403 with token and signature do not exist.", function()
-    mocked_core.request = {
-      header = function(_)
-        return nil
-      end
-    }
-
-    local status, body = actual.access({}, {})
-
-    assert.equal(403, status)
-    assert.equal(cjson.encode({
-        status = "error",
-        message = "Forbidden",
-        code = 40301
-    }), body)
-  end)
-
-  it("should be 403 with signature exists but username does not exist.", function()
+  it("should be 401 with token invalid but signature valid.", function()
     mocked_core.request = {
       header = function(_, x)
         if x == "Token" then
-          return nil
-        elseif x == "X-Signature" then
-          return "H97SMgCZOxDNMBvJ+CxOtJjC0AXGop0sAMSxh/J+fVn6SdAooILe1APPG2GjeDmsPy3fXh7gFucB0mhkwfCtNK1FrwHfU/gfpN8wplh9xDeTmpMeuUCEyHuNJVSRQSUj/mUeW3mWI7ufOg7i/B2yi8PmxPVWrs66l88TzOwit8iZN0P7AEJ9+BRaILKpOzY5VNqxjHnK9mTswyXgXRgG1Z6q15KgoOgUB5aXWigSb7snnA0G/HOTpHcoJTgGgF9kh1N59cZPUqm9M908vMj91RRhsmPtkUfVSva9r6Nz5bykW2uF0BB6mxe4p1Bt4OshufBL/lzshqarC0jA0BUJ3A=="
-        elseif x == "Timestamp" then
-          return "mocked_username"
-        else
-          return nil
-        end
-      end
-    }
-
-    local status, body = actual.access({}, {})
-
-    assert.equal(403, status)
-    assert.equal(cjson.encode({
-        status = "error",
-        message = "Forbidden",
-        code = 40301
-    }), body)
-  end)
-
-  it("should be 403 with signature exists but timestamp does not exist.", function()
-    mocked_core.request = {
-      header = function(_, x)
-        if x == "Token" then
-          return nil
+          return "malformed"
         elseif x == "X-Signature" then
           return "H97SMgCZOxDNMBvJ+CxOtJjC0AXGop0sAMSxh/J+fVn6SdAooILe1APPG2GjeDmsPy3fXh7gFucB0mhkwfCtNK1FrwHfU/gfpN8wplh9xDeTmpMeuUCEyHuNJVSRQSUj/mUeW3mWI7ufOg7i/B2yi8PmxPVWrs66l88TzOwit8iZN0P7AEJ9+BRaILKpOzY5VNqxjHnK9mTswyXgXRgG1Z6q15KgoOgUB5aXWigSb7snnA0G/HOTpHcoJTgGgF9kh1N59cZPUqm9M908vMj91RRhsmPtkUfVSva9r6Nz5bykW2uF0BB6mxe4p1Bt4OshufBL/lzshqarC0jA0BUJ3A=="
         elseif x == "username" then
           return "mocked_username"
         else
-          return nil
+            return "1516239022"
         end
       end
     }
 
     local status, body = actual.access({}, {})
 
-    assert.equal(403, status)
+    assert.equal(401, status)
     assert.equal(cjson.encode({
         status = "error",
-        message = "Forbidden",
-        code = 40301
-    }), body)
-  end)
-
-  it("should be 403 with signature exists but both username and timestamp do not exist.", function()
-    mocked_core.request = {
-      header = function(_, x)
-        if x == "Token" then
-          return nil
-        elseif x == "X-Signature" then
-          return "H97SMgCZOxDNMBvJ+CxOtJjC0AXGop0sAMSxh/J+fVn6SdAooILe1APPG2GjeDmsPy3fXh7gFucB0mhkwfCtNK1FrwHfU/gfpN8wplh9xDeTmpMeuUCEyHuNJVSRQSUj/mUeW3mWI7ufOg7i/B2yi8PmxPVWrs66l88TzOwit8iZN0P7AEJ9+BRaILKpOzY5VNqxjHnK9mTswyXgXRgG1Z6q15KgoOgUB5aXWigSb7snnA0G/HOTpHcoJTgGgF9kh1N59cZPUqm9M908vMj91RRhsmPtkUfVSva9r6Nz5bykW2uF0BB6mxe4p1Bt4OshufBL/lzshqarC0jA0BUJ3A=="
-        else
-          return nil
-        end
-      end
-    }
-
-    local status, body = actual.access({}, {})
-
-    assert.equal(403, status)
-    assert.equal(cjson.encode({
-        status = "error",
-        message = "Forbidden",
-        code = 40301
+        message = "Unauthorized",
+        code = 40101
     }), body)
   end)
 end)
