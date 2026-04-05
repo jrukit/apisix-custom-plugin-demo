@@ -1,15 +1,14 @@
 plugin_configs:
-    -
-        id: 1
-        plugins:
-            custom-signature-authorizer:
-                body: "custom-signature-authorizer plugin is working."
+  - id: 1
+    plugins:
+      toksig-auth:
+        body: "toksig-auth plugin is working."
 routes:
-    - id: 1
-      uri: /*
-      plugin_config_id: 1
-      upstream:
-        nodes:
-          "httpbin.org:80": 1
-        type: roundrobin
+  - id: 1
+    uri: /*
+    plugin_config_id: 1
+    upstream:
+      nodes:
+        "httpbin.org:80": 1
+      type: roundrobin
 #END
