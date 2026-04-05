@@ -46,10 +46,12 @@ local function fetch_pub_key(username)
     return pub_keys[username]
 end
 
-local function verify_sig(signature, username, timestamp)
+local function verify_sig(sig, username, ts)
     local pub, err = openssl_pkey.new(fetch_pub_key(username))
-    local data = timestamp .. username
-    return pub and pub:verify(decode_base64(signature), data, "sha256") or false
+    local data = ts .. username
+    local alg = "sha256"
+
+    return pub and pub:verify(decode_base64(sig), data, alg) or false
 end
 
 local function extract_username(token)
@@ -64,12 +66,11 @@ end
 local function verify_jwt(token)
     local username = extract_username(token)
 
-    return username ~= nil and
-           jwt:verify(fetch_pub_key(username), token).verified
+    return username ~= nil and jwt:verify(fetch_pub_key(username), token).verified
 end
 
-local function is_present(str)
-    return str ~= nil and str ~= ""
+local function is_present(s)
+    return s ~= nil and s ~= ""
 end
 
 local function is_jwt_valid(token)
@@ -81,9 +82,7 @@ local function is_sig_valid(token, sig, username, ts)
 end
 
 local function has_sig_bundle(sig, username, ts)
-    return is_present(sig) and
-           is_present(username) and
-           is_present(ts)
+    return is_present(sig) and is_present(username) and is_present(ts)
 end
 
 function _M.access(conf, ctx)
@@ -94,17 +93,17 @@ function _M.access(conf, ctx)
 
     if not is_present(token) and not has_sig_bundle(sig, username, ts) then
         return 403, cjson.encode({
-        status = "error",
-        message = "Forbidden",
-        code = 40301,
+            status = "error",
+            message = "Forbidden",
+            code = 40301,
         })
     end
 
     if not is_jwt_valid(token) and not is_sig_valid(token, sig, username, ts) then
         return 401, cjson.encode({
-        status = "error",
-        message = "Unauthorized",
-        code = 40101,
+            status = "error",
+            message = "Unauthorized",
+            code = 40101,
         })
     end
 end
@@ -119,4 +118,5 @@ if _G._TEST then
     _M.is_sig_valid = is_sig_valid
     _M.has_sig_bundle = has_sig_bundle
 end
+
 return _M
