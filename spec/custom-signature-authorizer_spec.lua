@@ -1,27 +1,52 @@
-local mocked_core = {
+local mocked_core
+local mocked_instance
+local mocked_http
+local actual
+
+setup(function()
+  _G._TEST = true
+
+  mocked_core = {
     log = { warn = function() end },
-}
+    schema = { check = function(_, _) end }
+  }
+  package.loaded["apisix.core"]  = mocked_core
 
-package.loaded["apisix.core"]  = mocked_core
-
-local mocked_instance = {
+  mocked_instance = {
     set_timeout = function(self, _) end,
     close = function(self) end,
-    request_uri = function(self, _) return { status = 200 } end
-}
-
-local mocked_http = {
+    request_uri = function(self, _) return end
+  }
+  mocked_http = {
     new = function()
         return mocked_instance
     end
-}
+  }
+  package.loaded["resty.http"]  = mocked_http
 
-package.loaded["resty.http"]  = mocked_http
+  actual = require("custom-signature-authorizer")
+end)
 
-local actual = require("custom-signature-authorizer")
-local cjson = require "cjson"
+describe("check_schema", function()
+  it("should be true for valid config.", function()
+    mocked_core.schema.check = function() return true end
+
+    assert.is_true(actual.check_schema({}))
+    end)
+
+  it("should false for invalid config.", function()
+    mocked_core.schema.check = function() return false end
+
+    assert.is_false(actual.check_schema({}))
+    end)
+end)
 
 describe("fetch_pub_key", function()
+  before_each(function()
+    mocked_instance.request_uri = function(_, _) return { status = 200 }
+    end
+  end)
+
   it("should be publick key.", function()
     local expected = "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5CMNefT88zJlnaHmHJMtEXY58E1PvX8+9mzJ8PpuG55U2K1sPyRX/mKplwaGBsSF0kKowXyXsrqzGEXlbsNYQjTd2oUGv6I54UE6p8xbIEB90jCwyKkej91Phy7DjReEQWAOgV5WYCommDCkER7HPRVpF2aMR2rb+hcS7YWProwbnqfEJIh5A9oml4iyud/YCkHWFuPyTzBAhOUsiIotaJL89tta0Y5x42mSJaFLcypzyPo+CcpEJNFq5VE+C6vda++vJmklK29Za/b4AX8v1WzDsFHDVk+JFc8D4r1pyzVTyKbODni9M/BWzgoM37PMePg9bNMa0XmlrVTaFKIEkwIDAQAB\n-----END PUBLIC KEY-----"
 
@@ -59,10 +84,6 @@ describe("fetch_pub_key", function()
       "https://httpbun.com", 
       match.is_table({ method = "GET", ssl_verify = false })
     )
-
-    mocked_instance.request_uri = function(_, _)
-      return { status = 200 }
-    end
   end)
 
   it("should be nil with http status is 400.", function()
@@ -78,10 +99,6 @@ describe("fetch_pub_key", function()
       "https://httpbun.com", 
       match.is_table({ method = "GET", ssl_verify = false })
     )
-
-    mocked_instance.request_uri = function(_, _)
-      return { status = 200 }
-    end
   end)
 end)
 
@@ -110,6 +127,11 @@ describe("extract_username", function()
 end)
 
 describe("verify_jwt", function()
+  setup(function()
+    mocked_instance.request_uri = function(_, _) return { status = 200 }
+    end
+  end)
+
   it("should be true.", function()
     local token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1vY2tlZF91c2VybmFtZSJ9.EajRp033Z3fSJMWcshy9nm9dgiGT0gLU3bR6kDRwlSPKXXATzhluuYQu3OJZS4aoKgtcYQuT7LKVbBDnohtpYxIjeNPycrwxJKwGMLZjVzK_afsKKqlGk0cGtnmP7B2tc2wLQLBaheHHXZO684PNBN3L-8rXiNjZ8psGY3YNpY29BlDCt5P4-G1fBm6DKClOWAB_P_aslarB_M0MqjiB1RiXUhEOiqA0F4QxY8E03cZdWoJbCLiUOlR2hTAzBV_A6qGb3zeH2cMoNMRw56Ci0oygvuPj0hSPjSZ8XYt6FvcTvWXgyX9DgLdLZOImH5VqzdVXYaxCaJosMi3gk_8d1Q"
 
@@ -211,7 +233,7 @@ describe("verify_sig", function()
     assert.is_false(actual.verify_sig(signature))
   end)
 
-  it("should be false with both usrname and timestamp headers are nil.", function()
+  it("should be false with both username and timestamp headers are nil.", function()
     mocked_core.request = {
       header = function(_, x)
         return nil
@@ -224,6 +246,12 @@ describe("verify_sig", function()
 end)
 
 describe("access", function()
+  local cjson
+  setup(function()
+    cjson = require "cjson"
+    mocked_instance.request_uri = function(self, _) return { status = 200 } end
+  end)
+
   it("should be nil with token valid.", function()
     local mocked_token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1vY2tlZF91c2VybmFtZSJ9.EajRp033Z3fSJMWcshy9nm9dgiGT0gLU3bR6kDRwlSPKXXATzhluuYQu3OJZS4aoKgtcYQuT7LKVbBDnohtpYxIjeNPycrwxJKwGMLZjVzK_afsKKqlGk0cGtnmP7B2tc2wLQLBaheHHXZO684PNBN3L-8rXiNjZ8psGY3YNpY29BlDCt5P4-G1fBm6DKClOWAB_P_aslarB_M0MqjiB1RiXUhEOiqA0F4QxY8E03cZdWoJbCLiUOlR2hTAzBV_A6qGb3zeH2cMoNMRw56Ci0oygvuPj0hSPjSZ8XYt6FvcTvWXgyX9DgLdLZOImH5VqzdVXYaxCaJosMi3gk_8d1Q"
     mocked_core.request = {
@@ -282,7 +310,7 @@ describe("access", function()
     }), body, body)
   end)
 
-    it("should be 401 with signature invalid.", function()
+  it("should be 401 with signature invalid.", function()
     mocked_core.request = {
       header = function(_, x)
         if x == "Token" then

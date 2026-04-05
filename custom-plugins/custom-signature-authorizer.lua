@@ -89,8 +89,10 @@ function _M.access(conf, ctx)
     end
 end
 
-_M.extract_username = extract_username
-_M.verify_jwt = verify_jwt
-_M.verify_sig = verify_sig
-_M.fetch_pub_key = fetch_pub_key
+if _G._TEST then
+    _M.fetch_pub_key = fetch_pub_key
+    _M.extract_username = extract_username
+    _M.verify_jwt = verify_jwt
+    _M.verify_sig = verify_sig
+end
 return _M
