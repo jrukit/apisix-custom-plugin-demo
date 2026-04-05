@@ -8,8 +8,21 @@ setup(function()
 
   mocked_core = {
     log = { warn = function() end },
-    schema = { check = function(_, _) end }
+    schema = { check = function(_, _) end },
+    config = { local_conf = function() end },
   }
+  mocked_core.config.local_conf = function()
+    return {
+      plugin_attr = {
+        ["custom-signature-authorizer"] = {
+          pub_keys = {
+            mocked_username = "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5CMNefT88zJlnaHmHJMtEXY58E1PvX8+9mzJ8PpuG55U2K1sPyRX/mKplwaGBsSF0kKowXyXsrqzGEXlbsNYQjTd2oUGv6I54UE6p8xbIEB90jCwyKkej91Phy7DjReEQWAOgV5WYCommDCkER7HPRVpF2aMR2rb+hcS7YWProwbnqfEJIh5A9oml4iyud/YCkHWFuPyTzBAhOUsiIotaJL89tta0Y5x42mSJaFLcypzyPo+CcpEJNFq5VE+C6vda++vJmklK29Za/b4AX8v1WzDsFHDVk+JFc8D4r1pyzVTyKbODni9M/BWzgoM37PMePg9bNMa0XmlrVTaFKIEkwIDAQAB\n-----END PUBLIC KEY-----",
+            mocked_unknown_username = "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmZdgx9gIsImmNll7HkfWvCsPXwdzZVauOCdMHia7wAstBbUYUn5sBNbsgtJI1MeSKcdgQa9KCMe6AzyRr+AyI3yFWkXTqNPZ2EV4E3sc5xWVI5iFBCK1r3E86H/vth0GjPw+2th0ACJxPe3Bkl98K0jhY5Qinbi47KIOxQ1alDrfVzEAIj5Aba7wbZXuZ0BjPQd78lqPNKQAvziyjn9bglCnNDv/H+AW1VHTctmIa1qnprJMiImzGZi/egwG4GatrmdPjp+n9JAqXyID1Zd5aZZpV0TsdgMVYieRjtOCS+uWaYraDIciq7fG1pAW9nA6Eiy7MPyIYOs6mXOjMvnMxwIDAQAB\n-----END PUBLIC KEY-----",
+          }
+        }
+      }
+    }
+  end
   package.loaded["apisix.core"]  = mocked_core
 
   mocked_instance = {
