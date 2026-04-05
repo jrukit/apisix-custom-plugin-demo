@@ -5,7 +5,7 @@ local schema = {
     properties = {
         body = {
             description = "custom response to replace the Upstream response with.",
-            type = "string"
+            type = "string",
         },
     },
     required = {"body"},
@@ -84,7 +84,7 @@ function _M.access(conf, ctx)
         return 401, cjson.encode({
         status = "error",
         message = "Unauthorized",
-        code = 40101
+        code = 40101,
         })
     end
 end
