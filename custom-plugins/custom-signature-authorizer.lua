@@ -47,55 +47,49 @@ local function fetch_pub_key(username)
     return pub_key[username]
 end
 
-local function verify_jwt(token)
-    if not token then
-        return false
-    end
-
+local function extract_username(token)
     local jwt_obj = jwt:load_jwt(token)
     if not jwt_obj.valid or not jwt_obj.payload.username then
-        return false
+        return nil
     end
 
-    local result = jwt:verify(fetch_pub_key(jwt_obj.payload.username), token)
-    return result.verified
+    return jwt_obj.payload.username
+end
+
+local function verify_jwt(token)
+    local username = extract_username(token)
+
+    return username and
+           jwt:verify(fetch_pub_key(username), token).verified
 end
 
 local function verify_sig(signature)
-    if not signature then
-        return false
-    end
-
     local username = core.request.header(ctx, "username")
-    local algorithm = "SHA256"
-    local pub, err = openssl_pkey.new(fetch_pub_key(username))
-    if not pub then
-        return false
-    end
-
     local timestamp = core.request.header(ctx, "Timestamp")
-    local data = timestamp .. username
-    local verify = pub:verify(decode_base64(signature), data)
-    if not verify then
+    if not username or not timestamp then
         return false
     end
 
-    return verify
+    local pub, err = openssl_pkey.new(fetch_pub_key(username))
+    local data = timestamp .. username
+    return pub and pub:verify(decode_base64(signature), data) or false
 end
 
 function _M.access(conf, ctx)
     local token_header = core.request.header(ctx, "Token")
     local sig_header = core.request.header(ctx, "X-Signature")
 
-    if not (verify_jwt(token_header) or verify_sig(sig_header)) then
+    if (not token_header or not verify_jwt(token_header)) and 
+       (not sig_header or not verify_sig(sig_header)) then
         return 401, cjson.encode({
         status = "error",
         message = "Unauthorized",
         code = 40101
-    })
+        })
     end
 end
 
+_M.extract_username = extract_username
 _M.verify_jwt = verify_jwt
 _M.verify_sig = verify_sig
 _M.fetch_pub_key = fetch_pub_key

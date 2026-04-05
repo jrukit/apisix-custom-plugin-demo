@@ -85,24 +85,41 @@ describe("fetch_pub_key", function()
   end)
 end)
 
-describe("verify_jwt", function()
+describe("extract_username", function()
+  it("should be username.", function()
+    local token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1vY2tlZF91c2VybmFtZSJ9.EajRp033Z3fSJMWcshy9nm9dgiGT0gLU3bR6kDRwlSPKXXATzhluuYQu3OJZS4aoKgtcYQuT7LKVbBDnohtpYxIjeNPycrwxJKwGMLZjVzK_afsKKqlGk0cGtnmP7B2tc2wLQLBaheHHXZO684PNBN3L-8rXiNjZ8psGY3YNpY29BlDCt5P4-G1fBm6DKClOWAB_P_aslarB_M0MqjiB1RiXUhEOiqA0F4QxY8E03cZdWoJbCLiUOlR2hTAzBV_A6qGb3zeH2cMoNMRw56Ci0oygvuPj0hSPjSZ8XYt6FvcTvWXgyX9DgLdLZOImH5VqzdVXYaxCaJosMi3gk_8d1Q"
 
+    assert.equal("mocked_username", actual.extract_username(token))
+  end)
+
+  it("should be nil with token no has username.", function()
+    local token_no_has_username = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.e30.JfMf4R5aalmF7D1hKxD8Ecf2oLSQNh4kL0u-d5zf9TFY-sin1Dw5ACzhxY8s2tU7s0WmehqFLr4JlImxUTIJyoXz1ty1CXSXuQ5s_01sbrCWJJU8FH19I6XONfxv4dzg2LPyOBEOjGZGIy12n2TROdXsVe9Gwfz-qnChXjlLe-3MkWyvKOMgfeouBM2VIXPcAdplEt1CFY5LkpN_iWPV-yaAYLVpiJnAyoaTjQfQ1SLCERxcUnFKMtvj3fkqBfgkegkBKeeQf_lTfnTiUO2wjzJE2VEkh7fpKBTkMQjQWgwTWYqSR9BcJnezXNAscZkADPRW160BoXDW_PaepX_XpQ"
+
+    assert.is_nil(actual.extract_username(token))
+  end)
+
+  it("should be nil with token is expired.", function()
+    local token_no_has_username = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1vY2tlZC11c2VybmFtZSIsImV4cCI6MTUwNjIzOTAyMn0.P4TnpxPnMMhFB9ReXguAW0synfuguFvChRATKiMgvi0WTwMc8o7SfmxBJsXGzuZFaDbuKwLFT4VkBi_55u9jFdd42BSwPrLdYC6Kzddj4Ah5IvBj3_3RLQCDoOobwxb9afS4jfMVcCZKiJDBaWdAe6YpMKOtxiaIWHHU4w_E-e-2rZDpkB4tA9wWO1zzMjtY8bqyHfH2O2VR8D8gXgFQEscU6TkWSK4sD2bLn8kxvePA9u_OR8oWWnYS-T_EiTDliy4EhH4S-JRAz_q8suNm7T4k4sH28k5UD4a5jYoGL0eltjAiwW9HghtcWmVaHZTRegx6ZgqqTACVmgbn5iln3Q"
+
+    assert.is_nil(actual.extract_username(token))
+  end)
+
+  it("should be nil with token is malformed.", function()
+    assert.is_nil(actual.extract_username("malformed"))
+  end)
+end)
+
+describe("verify_jwt", function()
   it("should be true.", function()
     local token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1vY2tlZF91c2VybmFtZSJ9.EajRp033Z3fSJMWcshy9nm9dgiGT0gLU3bR6kDRwlSPKXXATzhluuYQu3OJZS4aoKgtcYQuT7LKVbBDnohtpYxIjeNPycrwxJKwGMLZjVzK_afsKKqlGk0cGtnmP7B2tc2wLQLBaheHHXZO684PNBN3L-8rXiNjZ8psGY3YNpY29BlDCt5P4-G1fBm6DKClOWAB_P_aslarB_M0MqjiB1RiXUhEOiqA0F4QxY8E03cZdWoJbCLiUOlR2hTAzBV_A6qGb3zeH2cMoNMRw56Ci0oygvuPj0hSPjSZ8XYt6FvcTvWXgyX9DgLdLZOImH5VqzdVXYaxCaJosMi3gk_8d1Q"
-    local verify, err = actual.verify_jwt(token)
-    assert.is_true(verify)
+
+    assert.is_true(actual.verify_jwt(token))
   end)
 
-  it("should be false with token is expired.", function()
-    assert.is_false(actual.verify_jwt("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1vY2tlZC11c2VybmFtZSIsImV4cCI6MTUwNjIzOTAyMn0.P4TnpxPnMMhFB9ReXguAW0synfuguFvChRATKiMgvi0WTwMc8o7SfmxBJsXGzuZFaDbuKwLFT4VkBi_55u9jFdd42BSwPrLdYC6Kzddj4Ah5IvBj3_3RLQCDoOobwxb9afS4jfMVcCZKiJDBaWdAe6YpMKOtxiaIWHHU4w_E-e-2rZDpkB4tA9wWO1zzMjtY8bqyHfH2O2VR8D8gXgFQEscU6TkWSK4sD2bLn8kxvePA9u_OR8oWWnYS-T_EiTDliy4EhH4S-JRAz_q8suNm7T4k4sH28k5UD4a5jYoGL0eltjAiwW9HghtcWmVaHZTRegx6ZgqqTACVmgbn5iln3Q"))
-  end)
+  it("should be false with not found username in token.", function()
+    local token_no_has_username = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1vY2tlZC11c2VybmFtZSIsImV4cCI6MTUwNjIzOTAyMn0.P4TnpxPnMMhFB9ReXguAW0synfuguFvChRATKiMgvi0WTwMc8o7SfmxBJsXGzuZFaDbuKwLFT4VkBi_55u9jFdd42BSwPrLdYC6Kzddj4Ah5IvBj3_3RLQCDoOobwxb9afS4jfMVcCZKiJDBaWdAe6YpMKOtxiaIWHHU4w_E-e-2rZDpkB4tA9wWO1zzMjtY8bqyHfH2O2VR8D8gXgFQEscU6TkWSK4sD2bLn8kxvePA9u_OR8oWWnYS-T_EiTDliy4EhH4S-JRAz_q8suNm7T4k4sH28k5UD4a5jYoGL0eltjAiwW9HghtcWmVaHZTRegx6ZgqqTACVmgbn5iln3Q"
 
-  it("should be false with token is malformed.", function()
-    assert.is_false(actual.verify_jwt("malformed"))
-  end)
-
-  it("should be false with token is nil.", function()
-    assert.is_false(actual.verify_jwt(nil))
+    assert.is_false(actual.verify_jwt(token_no_has_username))
   end)
 end)
 
@@ -121,7 +138,6 @@ describe("verify_sig", function()
     
     assert.is_true(actual.verify_sig(signature))
   end)
-
 
   it("should be false with malformed signature.", function()
     mocked_core.request = {
@@ -150,7 +166,7 @@ describe("verify_sig", function()
     assert.is_false(actual.verify_sig(signature))
   end)
 
-    it("should be false with key pair not matched.", function()
+  it("should be false with key pair not matched.", function()
     mocked_core.request = {
       header = function(_, x)
         if x == "username" then
@@ -165,9 +181,44 @@ describe("verify_sig", function()
     assert.is_false(actual.verify_sig(signature))
   end)
 
-   it("should be false with signature is nil.", function()
-    local signature = "LlPjkJFoZZyBEjHAluqv28kNN2aS48yNfk7L1j9cFtn42V++G9lq9NKnS6wDa22lN+91aRBbMA/lv7pnOH8JdvxnbWuiRbhP1xfVp4jK7v2GkVMcM8Wwv4Bs+sNjlOTbgdqBnxyQUOTgZRnGk1TBGtZC2vOKw6AFWI3Us2huRONNKcy45/RDlgY+KGhIIrd46IQ+HByBGsVESjLlmePaegPA2DbB3twMvsRytYd7zNTQ0zOSyI4ppPMRdX9nzQ9dgTveHI2Vqem7qSTODR5DmZCXixK9P7uBguKN6EwpRknHtpsO/IjYMvpp3AOQwQ9ERlKEc5bvgJiYpmj/Ck3qSw=="
+  it("should be false with username headers is nil.", function()
+    mocked_core.request = {
+      header = function(_, x)
+        if x == "username" then
+          return nil
+        else
+            return "1516239022"
+        end
+      end
+    }
+    local signature = "H97SMgCZOxDNMBvJ+CxOtJjC0AXGop0sAMSxh/J+fVn6SdAooILe1APPG2GjeDmsPy3fXh7gFucB0mhkwfCtNK1FrwHfU/gfpN8wplh9xDeTmpMeuUCEyHuNJVSRQSUj/mUeW3mWI7ufOg7i/B2yi8PmxPVWrs66l88TzOwit8iZN0P7AEJ9+BRaILKpOzY5VNqxjHnK9mTswyXgXRgG1Z6q15KgoOgUB5aXWigSb7snnA0G/HOTpHcoJTgGgF9kh1N59cZPUqm9M908vMj91RRhsmPtkUfVSva9r6Nz5bykW2uF0BB6mxe4p1Bt4OshufBL/lzshqarC0jA0BUJ3A=="
+    
+    assert.is_false(actual.verify_sig(signature))
+  end)
 
+  it("should be false with timestamp headers is nil.", function()
+    mocked_core.request = {
+      header = function(_, x)
+        if x == "username" then
+          return "mocked_username"
+        else
+            return nil
+        end
+      end
+    }
+    local signature = "H97SMgCZOxDNMBvJ+CxOtJjC0AXGop0sAMSxh/J+fVn6SdAooILe1APPG2GjeDmsPy3fXh7gFucB0mhkwfCtNK1FrwHfU/gfpN8wplh9xDeTmpMeuUCEyHuNJVSRQSUj/mUeW3mWI7ufOg7i/B2yi8PmxPVWrs66l88TzOwit8iZN0P7AEJ9+BRaILKpOzY5VNqxjHnK9mTswyXgXRgG1Z6q15KgoOgUB5aXWigSb7snnA0G/HOTpHcoJTgGgF9kh1N59cZPUqm9M908vMj91RRhsmPtkUfVSva9r6Nz5bykW2uF0BB6mxe4p1Bt4OshufBL/lzshqarC0jA0BUJ3A=="
+    
+    assert.is_false(actual.verify_sig(signature))
+  end)
+
+  it("should be false with both usrname and timestamp headers are nil.", function()
+    mocked_core.request = {
+      header = function(_, x)
+        return nil
+      end
+    }
+    local signature = "H97SMgCZOxDNMBvJ+CxOtJjC0AXGop0sAMSxh/J+fVn6SdAooILe1APPG2GjeDmsPy3fXh7gFucB0mhkwfCtNK1FrwHfU/gfpN8wplh9xDeTmpMeuUCEyHuNJVSRQSUj/mUeW3mWI7ufOg7i/B2yi8PmxPVWrs66l88TzOwit8iZN0P7AEJ9+BRaILKpOzY5VNqxjHnK9mTswyXgXRgG1Z6q15KgoOgUB5aXWigSb7snnA0G/HOTpHcoJTgGgF9kh1N59cZPUqm9M908vMj91RRhsmPtkUfVSva9r6Nz5bykW2uF0BB6mxe4p1Bt4OshufBL/lzshqarC0jA0BUJ3A=="
+    
     assert.is_false(actual.verify_sig(signature))
   end)
 end)
