@@ -57,16 +57,17 @@ end
 local function print_jwt_info(jwt_obj)
     local info_string = "{\"plugin_name\":\"toksig-auth\"}"
     local info_json = cjson.decode(info_string)
-    info_json.header = jwt_obj.header
-    info_json.payload = jwt_obj.payload
-
-    core.log.info(string.format("Load JWT success [Plugin: %s]", info_json.plugin_name))
+    info_json.header = jwt_obj.header or nil
+    info_json.payload = jwt_obj.payload or nil
+    info_json.status = jwt_obj.valid and "success" or "failed"
+    core.log.info(string.format("Load JWT %s [Plugin: %s]", info_json.status, info_json.plugin_name))
     core.log.info(string.format("This is information: %s", cjson.encode(info_json)))
 end
 
 local function extract_username(token)
     local jwt_obj = jwt:load_jwt(token)
     if not jwt_obj.valid or not jwt_obj.payload.username then
+        print_jwt_info(jwt_obj)
         return nil
     end
 
