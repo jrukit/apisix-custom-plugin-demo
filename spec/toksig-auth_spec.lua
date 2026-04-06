@@ -7,7 +7,9 @@ setup(function()
   _G._TEST = true
 
   mocked_core = {
-    log = { warn = function() end },
+    log = { 
+      warn = function(x) print(x) end,
+      info = function(x) print(x) end},
     schema = { check = function(_, _) end },
     config = { local_conf = function() end },
   }

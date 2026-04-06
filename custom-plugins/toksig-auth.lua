@@ -60,8 +60,8 @@ local function print_jwt_info(jwt_obj)
     info_json.header = jwt_obj.header
     info_json.payload = jwt_obj.payload
 
-    print(string.format("Load JWT success [Plugin: %s]", info_json.plugin_name))
-    print(string.format("This is information: %s", cjson.encode(info_json)))
+    core.log.info(string.format("Load JWT success [Plugin: %s]", info_json.plugin_name))
+    core.log.info(string.format("This is information: %s", cjson.encode(info_json)))
 end
 
 local function extract_username(token)
