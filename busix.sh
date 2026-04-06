@@ -27,7 +27,7 @@ case "$1" in
         echo "      ╚═════╝  ╚═════╝ ╚══════╝╚═╝╚═╝  ╚═╝"
         echo -e "         ${SLATE}SYSTEM QUALITY :: TRUST ME BRO${NC}"
         echo -e ""
-        echo -e "${CYAN}      ──────────────────────────────────────────────────────────${NC}"
+        echo -e "${CYAN}──────────────────────────────────────────────────────────${NC}"
 
         docker-compose down && docker-compose up -d
 
@@ -46,7 +46,7 @@ case "$1" in
         echo "      ██████╔╝╚██████╔╝███████║██║██╔╝ ██╗"
         echo "      ╚═════╝  ╚═════╝ ╚══════╝╚═╝╚═╝  ╚═╝"
         echo -e "         ${SLATE}SHUTDOWN SEQUENCE :: INITIATED${NC}"
-        echo -e "${SLATE}      ──────────────────────────────────────────────────────────${NC}"
+        echo -e "${SLATE}──────────────────────────────────────────────────────────${NC}"
 
         docker-compose down
         ;;
