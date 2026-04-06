@@ -58,7 +58,7 @@ case "$1" in
         fi
         echo -e "${CYAN}${BOLD}${ICON_TEST} [Busix] Running: ${SPEC_FILE}${NC}"
 
-        if [ "$2" == "-c" ] || "$2" == "--coverage" ] || "$3" == "-c" ] || [ "$3" == "--coverage" ]; then
+        if [ "$2" == "-c" ] || [ "$3" == "-c" ]; then
             docker exec -it $CONTAINER_ID sh -c "
                 echo \"return { exclude = {'spec/.*', 'usr/.*'} }\" > .luacov && \
                 rm -f luacov.stats.out luacov.report.out && \
