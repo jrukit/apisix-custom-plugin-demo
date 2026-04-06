@@ -2,6 +2,7 @@
 
 GOLD='\033[38;5;220m'
 GREEN='\033[0;32m'
+GREY='\033[38;5;244m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 CYAN='\033[0;36m'
@@ -51,10 +52,10 @@ case "$1" in
         echo "      ╚════██║██╔══██║██║  ██║██╔══██║██║   ██║"
         echo "      ███████║██║  ██║██████╔╝██║  ██║╚██████╔╝"
         echo "      ╚══════╝╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝ ╚═════╝ "
-        echo -e "               ${GREY}--- G A T E W A Y B L E S S E D ---${NC}"
+        echo -e "           ${GREY}--- G A T E W A Y  S L E E P ---${NC}"
         echo -e ""
         echo -e "${RED}  ──────────────────────────────────────────────────────────${NC}"
-        echo -e "    ${RED}Status:${NC}   ${WHITE}Closing the Temple (Docker Down)${NC}"
+        echo -e "    ${RED}Status:${NC}   ${WHITE}Closing the APISIX (Docker Down)${NC}"
         echo -e "    ${RED}Prophecy:${NC} ${GREY}\"Go home, your bugs will wait for you tomorrow.\"${NC}"
         echo -e "${RED}  ──────────────────────────────────────────────────────────${NC}"
         
