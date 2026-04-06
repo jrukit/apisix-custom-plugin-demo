@@ -54,11 +54,23 @@ local function verify_sig(sig, username, ts)
     return pub and pub:verify(decode_base64(sig), data, alg) or false
 end
 
+local function print_jwt_info(jwt_obj)
+    local info_string = "{\"plugin_name\":\"toksig-auth\"}"
+    local info_json = cjson.decode(info_string)
+    info_json.header = jwt_obj.header
+    info_json.payload = jwt_obj.payload
+
+    print(string.format("Load JWT success [Plugin: %s]", info_json.plugin_name))
+    print(string.format("This is information: %s", cjson.encode(info_json)))
+end
+
 local function extract_username(token)
     local jwt_obj = jwt:load_jwt(token)
     if not jwt_obj.valid or not jwt_obj.payload.username then
         return nil
     end
+
+    print_jwt_info(jwt_obj)
 
     return jwt_obj.payload.username
 end
@@ -92,19 +104,11 @@ function _M.access(conf, ctx)
     local ts = core.request.header(ctx, "Timestamp")
 
     if not is_present(token) and not has_sig_bundle(sig, username, ts) then
-        return 403, cjson.encode({
-            status = "error",
-            message = "Forbidden",
-            code = 40301,
-        })
+        return 403, "Forbidden"
     end
 
     if not is_jwt_valid(token) and not is_sig_valid(token, sig, username, ts) then
-        return 401, cjson.encode({
-            status = "error",
-            message = "Unauthorized",
-            code = 40101,
-        })
+        return 401, "Unauthorized"
     end
 end
 

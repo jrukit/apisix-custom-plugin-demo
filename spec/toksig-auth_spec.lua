@@ -357,11 +357,7 @@ describe("access", function()
     local status, body = actual.access({}, {})
 
     assert.equal(403, status)
-    assert.equal(cjson.encode({
-        status = "error",
-        message = "Forbidden",
-        code = 40301
-    }), body)
+    assert.equal("Forbidden", body)
   end)
 
   it("should be 401 with token invalid.", function()
@@ -378,11 +374,7 @@ describe("access", function()
     local status, body = actual.access({}, {})
 
     assert.equal(401, status)
-    assert.equal(cjson.encode({
-        status = "error",
-        message = "Unauthorized",
-        code = 40101
-    }), body, body)
+    assert.equal("Unauthorized", body)
   end)
 
   it("should be 401 with signature invalid.", function()
@@ -403,11 +395,7 @@ describe("access", function()
     local status, body = actual.access({}, {})
 
     assert.equal(401, status)
-    assert.equal(cjson.encode({
-        status = "error",
-        message = "Unauthorized",
-        code = 40101
-    }), body)
+    assert.equal("Unauthorized", body)
   end)
 
   it("should be 401 with token invalid but signature valid.", function()
@@ -428,10 +416,6 @@ describe("access", function()
     local status, body = actual.access({}, {})
 
     assert.equal(401, status)
-    assert.equal(cjson.encode({
-        status = "error",
-        message = "Unauthorized",
-        code = 40101
-    }), body)
+    assert.equal("Unauthorized", body)
   end)
 end)
