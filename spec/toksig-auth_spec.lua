@@ -192,6 +192,12 @@ describe("verify_jwt", function()
   it("should be false with toekn is malformed.", function()
     assert.is_false(actual.verify_jwt("malformed"))
   end)
+
+  it("should be false with token is expired.", function()
+    local token_no_has_username = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1vY2tlZF91c2VybmFtZSIsImV4cCI6MTA3NTY0MjcyNH0.uw0RvTt8BbfBEw0NNikLTCoGXzkBpIe1MkzZWVb1iZjVFd03a-opmDW7OWkfP4DxuTlXDlxdPGNb5zRVdU9WQlhGfwOD5Be7yFRGPCSz56s9-M-cGeS_BS-rXmEBCuZutovXbxgNJ_hNY4u9X7nXQRFp2BJG6OW4IC1v6PTlJISOal5szx2fCdP27bKV9o_5tEh_4XQxyzRoKM9MKaj7ueZHCfawY4lLduIsAvTLbHwWCPCEXyHG71YGhf3wLA4VaarZ1-cvKM0jWpBXE_XtZHeAdUHAyyCilvQWRWbQPnANJ-eoi8QHShy-AE35VwCPyk_fNyRL24UwTfcX8740EA"
+
+    assert.is_false(actual.verify_jwt(token_no_has_username))
+  end)
 end)
 
 describe("is_present", function()
@@ -249,14 +255,8 @@ describe("is_sig_valid", function()
     assert.is_false(actual.is_sig_valid(token, sig, "mocked_username", "1516239022"))
   end)
 
-  it("should be false with signature does not exist.", function()
-    local token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1vY2tlZF91c2VybmFtZSJ9.EajRp033Z3fSJMWcshy9nm9dgiGT0gLU3bR6kDRwlSPKXXATzhluuYQu3OJZS4aoKgtcYQuT7LKVbBDnohtpYxIjeNPycrwxJKwGMLZjVzK_afsKKqlGk0cGtnmP7B2tc2wLQLBaheHHXZO684PNBN3L-8rXiNjZ8psGY3YNpY29BlDCt5P4-G1fBm6DKClOWAB_P_aslarB_M0MqjiB1RiXUhEOiqA0F4QxY8E03cZdWoJbCLiUOlR2hTAzBV_A6qGb3zeH2cMoNMRw56Ci0oygvuPj0hSPjSZ8XYt6FvcTvWXgyX9DgLdLZOImH5VqzdVXYaxCaJosMi3gk_8d1Q"
-    assert.is_false(actual.is_sig_valid(token, nil, "mocked_username", "1516239022"))
-  end)
-
   it("should be false with invalid signature.", function()
-    local token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1vY2tlZF91c2VybmFtZSJ9.EajRp033Z3fSJMWcshy9nm9dgiGT0gLU3bR6kDRwlSPKXXATzhluuYQu3OJZS4aoKgtcYQuT7LKVbBDnohtpYxIjeNPycrwxJKwGMLZjVzK_afsKKqlGk0cGtnmP7B2tc2wLQLBaheHHXZO684PNBN3L-8rXiNjZ8psGY3YNpY29BlDCt5P4-G1fBm6DKClOWAB_P_aslarB_M0MqjiB1RiXUhEOiqA0F4QxY8E03cZdWoJbCLiUOlR2hTAzBV_A6qGb3zeH2cMoNMRw56Ci0oygvuPj0hSPjSZ8XYt6FvcTvWXgyX9DgLdLZOImH5VqzdVXYaxCaJosMi3gk_8d1Q"
-    assert.is_false(actual.is_sig_valid(token, "malformed", "mocked_username", "1516239022"))
+    assert.is_false(actual.is_sig_valid(nil, "malformed", "mocked_username", "1516239022"))
   end)
 end)
 
