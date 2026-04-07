@@ -13,6 +13,7 @@ services:
       - ./apisix.yaml:/usr/local/apisix/conf/apisix.yaml:ro
       - ./custom-plugins:/opt/apisix/plugins:ro
       - ./spec:/opt/spec:ro
+      - ./.luacov:/opt/apisix/.luacov
     environment:
       - LUA_PATH=/opt/apisix/plugins/?.lua;/usr/local/apisix/deps/share/lua/5.1/?.lua;/usr/local/apisix/deps/share/lua/5.1/?/init.lua;;
     ports:

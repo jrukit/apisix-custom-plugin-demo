@@ -1,0 +1,6 @@
+return {
+  exclude = {
+    "spec/.*",
+    "usr/.*",
+  },
+}

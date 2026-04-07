@@ -39,7 +39,7 @@ case "$1" in
 
         if [ "$2" == "-c" ] || [ "$3" == "-c" ]; then
             docker exec -it $CONTAINER_ID sh -c "
-                echo \"return { exclude = {'spec/.*', 'usr/.*'} }\" > .luacov && \
+                cd /opt/apisix && \
                 rm -f luacov.stats.out luacov.report.out && \
                 busted --lua=resty --coverage -o gtest /opt/spec/$SPEC_FILE && \
                 luacov && \
