@@ -9,10 +9,11 @@ services:
       sh -c "apisix init &&
       /usr/local/openresty/bin/openresty -p /usr/local/apisix -g 'daemon off;'"
     volumes:
-      - ./config.yaml:/usr/local/apisix/conf/config.yaml:ro
-      - ./apisix.yaml:/usr/local/apisix/conf/apisix.yaml:ro
+      - ./conf/config.yaml:/usr/local/apisix/conf/config.yaml:ro
+      - ./conf/apisix.yaml:/usr/local/apisix/conf/apisix.yaml:ro
       - ./custom-plugins:/opt/apisix/plugins:ro
       - ./spec:/opt/spec:ro
+      - ./conf/.luacov:/opt/apisix/.luacov:ro
     environment:
       - LUA_PATH=/opt/apisix/plugins/?.lua;/usr/local/apisix/deps/share/lua/5.1/?.lua;/usr/local/apisix/deps/share/lua/5.1/?/init.lua;;
     ports:
