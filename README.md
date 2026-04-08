@@ -14,11 +14,11 @@ bash ./busix.sh up
 Execute tests using Busted. You can run a specific file or include coverage reports.
 #### Run a specific test
 ```
-bash ./busix.sh run spec/toksig-auth_spec.lua
+bash ./busix.sh run spec/dump_spec.lua
 ```
 #### Run with Coverage Report
 ```
-bash ./busix.sh run spec/toksig-auth_spec.lua -c
+bash ./busix.sh run spec/dump_spec.lua -c
 ```
 
 ### 3. Monitor Logs
